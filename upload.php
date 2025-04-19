@@ -8,18 +8,24 @@ if (!isset($_SESSION['username'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
+    $maxFileSize = 1 * 1024 * 1024; // 1MB in bytes
+    $fileSize = $_FILES['image']['size'];
     $targetDir = "uploads/";
     $filename = basename($_FILES["image"]["name"]);
     $targetFile = $targetDir . $filename;
 
-    if (move_uploaded_file($_FILES["image"]["tmp_name"], $targetFile)) {
-        $group = "mySlides2";
-        $stmt = $conn->prepare("INSERT INTO slider_images (filename, slider_group) VALUES (?, ?)");
-        $stmt->bind_param("ss", $filename, $group);
-        $stmt->execute();
-        $success = "Image uploaded successfully!";
+    if ($fileSize > $maxFileSize) {
+        $error = "File size must not exceed 1 MB!";
     } else {
-        $error = "Upload failed!";
+        if (move_uploaded_file($_FILES["image"]["tmp_name"], $targetFile)) {
+            $group = "mySlides2";
+            $stmt = $conn->prepare("INSERT INTO slider_images (filename, slider_group) VALUES (?, ?)");
+            $stmt->bind_param("ss", $filename, $group);
+            $stmt->execute();
+            $success = "Image uploaded successfully!";
+        } else {
+            $error = "Upload failed!";
+        }
     }
 }
 ?>
